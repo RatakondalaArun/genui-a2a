@@ -6,7 +6,9 @@
   "devDependencies": {
     "@toolbox-sdk/server": "^0.25.0",
     "@types/bun": "latest",
-    "@types/express": "^5.0.6"
+    "@types/express": "^5.0.6",
+    "concurrently": "^9.2.1",
+    "wait-on": "^9.0.3"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -26,7 +28,8 @@
     "langchain": "^1.2.10"
   },
   "scripts": {
-    "dev": "bun run --watch --env-file=.env server.ts",
-    "mcp-server": "bun run toolbox -p 5000 --ui --log-level DEBUG"
+    "dev": "bun concurrently.js",
+    "dev:mcp-server": "toolbox -p 5000 --ui --log-level DEBUG",
+    "dev:server": "bun run --watch --env-file=.env server.ts"
   }
 }
