@@ -1,0 +1,174 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "surfaceUpdate",
+              "args": {
+                "components": [
+                  {
+                    "id": "main_column",
+                    "component": {
+                      "Column": {
+                        "children": {
+                          "explicitList": [
+                            "title_text",
+                            "question_indicator",
+                            "score_indicator",
+                            "divider",
+                            "question_text",
+                            "answer_options",
+                            "submit_button"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "id": "title_text",
+                    "component": {
+                      "Text": {
+                        "text": {
+                          "literalString": "GCP Knowledge Quiz"
+                        },
+                        "usageHint": "h1"
+                      }
+                    }
+                  },
+                  {
+                    "id": "question_indicator",
+                    "component": {
+                      "Text": {
+                        "text": {
+                          "path": "/question_number_text"
+                        },
+                        "usageHint": "h4"
+                      }
+                    }
+                  },
+                  {
+                    "component": {
+                      "Text": {
+                        "text": {
+                          "path": "/score_text"
+                        },
+                        "usageHint": "h4"
+                      }
+                    },
+                    "id": "score_indicator"
+                  },
+                  {
+                    "id": "divider",
+                    "component": {
+                      "Divider": {}
+                    }
+                  },
+                  {
+                    "component": {
+                      "Text": {
+                        "text": {
+                          "path": "/question_text"
+                        },
+                        "usageHint": "body"
+                      }
+                    },
+                    "id": "question_text"
+                  },
+                  {
+                    "id": "answer_options",
+                    "component": {
+                      "MultipleChoice": {
+                        "maxAllowedSelections": 1,
+                        "selections": {
+                          "path": "/user_selection"
+                        },
+                        "options": [
+                          {
+                            "label": {
+                              "path": "/option_a_label"
+                            },
+                            "value": "A"
+                          },
+                          {
+                            "label": {
+                              "path": "/option_b_label"
+                            },
+                            "value": "B"
+                          },
+                          {
+                            "value": "C",
+                            "label": {
+                              "path": "/option_c_label"
+                            }
+                          },
+                          {
+                            "label": {
+                              "path": "/option_d_label"
+                            },
+                            "value": "D"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "id": "submit_button",
+                    "component": {
+                      "Button": {
+                        "child": "submit_button_text",
+                        "action": {
+                          "name": "submitAnswer"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "id": "submit_button_text",
+                    "component": {
+                      "Text": {
+                        "text": {
+                          "literalString": "Submit"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "surfaceId": "gcp_quiz"
+              }
+            },
+            "thoughtSignature": "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"
+          },
+          {
+            "functionCall": {
+              "name": "beginRendering",
+              "args": {
+                "root": "main_column",
+                "surfaceId": "gcp_quiz"
+              }
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 5699,
+    "candidatesTokenCount": 432,
+    "totalTokenCount": 6746,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 5699
+      }
+    ],
+    "thoughtsTokenCount": 615
+  },
+  "modelVersion": "gemini-2.5-pro",
+  "responseId": "1uVlaZ7yFZK94-EPz8fPuQo"
+}

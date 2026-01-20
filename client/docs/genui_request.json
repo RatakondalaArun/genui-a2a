@@ -1,0 +1,929 @@
+{
+  "model": "models/gemini-2.5-pro",
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "# Instructions\n## Role:\n- You are a Google Cloud Platform (GCP) Subject Matter Expert and Interactive Quiz Master.\n## Task:\n- Create an interactive GCP quiz that tests both conceptual and practical knowledge.\n\n## Quiz Requirements:\n- Clean, modern UI/UX\n- Generate at least 10 questions related to GCP (mix of beginner to intermediate level).\n- Ask one question at a time, waiting for the user’s answer before proceeding.\n- After each response, clearly show the status of the question:\n- ✅ Correct\n- ❌ Incorrect (include a brief explanation)\n- Keep track of the current score and question number (e.g., Question 3 of 10).\n\n## End of Quiz Summary:\n- Provide a detailed breakdown including:\n- Each question\n- The user's answer\n- The correct answer\n- A clear explanation for each\n- Display the final score and performance assessment (e.g., Beginner / Intermediate / Advanced).\n\n##Interaction Rules:\n- Do not show future questions in advance.\n- Maintain a clear, friendly, and professional tone.\n- Ensure explanations are concise but informative.\n"
+        }
+      ]
+    },
+    {
+      "parts": [
+        {
+          "text": "hi"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "surfaceUpdate",
+          "description": "Updates a surface with a new set of components.",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "surfaceId": {
+                "type": "STRING",
+                "description": "The unique identifier for the UI surface to create or update. If you are adding a new surface this *must* be a new, unique identified that has never been used for any existing surfaces shown."
+              },
+              "components": {
+                "type": "ARRAY",
+                "description": "A list of component definitions.",
+                "items": {
+                  "type": "OBJECT",
+                  "description": "Represents a *single* component in a UI widget tree. This component could be one of many supported types.",
+                  "properties": {
+                    "id": {
+                      "type": "STRING"
+                    },
+                    "weight": {
+                      "type": "INTEGER",
+                      "description": "Optional layout weight for use in Row/Column children."
+                    },
+                    "component": {
+                      "type": "OBJECT",
+                      "description": "A wrapper object that MUST contain exactly one key, which is the name of the component type (e.g., 'Text'). The value is an object containing the properties for that specific component.",
+                      "properties": {
+                        "AudioPlayer": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "url": {
+                              "type": "OBJECT",
+                              "description": "The URL of the audio to play.",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalString": {
+                                  "type": "STRING"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "url"
+                          ]
+                        },
+                        "Button": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "child": {
+                              "type": "STRING",
+                              "description": "The ID of a child widget. This should always be set, e.g. to the ID of a `Text` widget."
+                            },
+                            "action": {
+                              "type": "OBJECT",
+                              "properties": {
+                                "name": {
+                                  "type": "STRING"
+                                },
+                                "context": {
+                                  "type": "ARRAY",
+                                  "description": "A list of name-value pairs to be sent with the action to include data associated with the action, e.g. values that are submitted.",
+                                  "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                      "key": {
+                                        "type": "STRING"
+                                      },
+                                      "value": {
+                                        "type": "OBJECT",
+                                        "properties": {
+                                          "path": {
+                                            "type": "STRING",
+                                            "description": "A path in the data model which should be bound to an input element, e.g. a string reference for a text field, or number reference for a slider."
+                                          },
+                                          "literalString": {
+                                            "type": "STRING",
+                                            "description": "A literal string relevant to the action"
+                                          },
+                                          "literalNumber": {
+                                            "type": "NUMBER",
+                                            "description": "A literal number relevant to the action"
+                                          },
+                                          "literalBoolean": {
+                                            "type": "BOOLEAN",
+                                            "description": "A literal boolean relevant to the action"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "key",
+                                      "value"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            "primary": {
+                              "type": "BOOLEAN",
+                              "description": "Whether the button invokes a primary action."
+                            }
+                          },
+                          "required": [
+                            "child",
+                            "action"
+                          ]
+                        },
+                        "Card": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "child": {
+                              "type": "STRING"
+                            }
+                          },
+                          "required": [
+                            "child"
+                          ]
+                        },
+                        "CheckBox": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "label": {
+                              "type": "OBJECT",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalString": {
+                                  "type": "STRING"
+                                }
+                              }
+                            },
+                            "value": {
+                              "type": "OBJECT",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalBoolean": {
+                                  "type": "BOOLEAN"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "value"
+                          ]
+                        },
+                        "Column": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "distribution": {
+                              "type": "STRING",
+                              "description": "How children are aligned on the main axis. ",
+                              "enum": [
+                                "start",
+                                "center",
+                                "end",
+                                "spaceBetween",
+                                "spaceAround",
+                                "spaceEvenly"
+                              ]
+                            },
+                            "alignment": {
+                              "type": "STRING",
+                              "description": "How children are aligned on the cross axis. ",
+                              "enum": [
+                                "start",
+                                "center",
+                                "end",
+                                "stretch",
+                                "baseline"
+                              ]
+                            },
+                            "children": {
+                              "type": "OBJECT",
+                              "description": "Either an explicit list of widget IDs for the children, or a template with a data binding to the list of children.",
+                              "properties": {
+                                "explicitList": {
+                                  "type": "ARRAY",
+                                  "items": {
+                                    "type": "STRING"
+                                  }
+                                },
+                                "template": {
+                                  "type": "OBJECT",
+                                  "properties": {
+                                    "componentId": {
+                                      "type": "STRING"
+                                    },
+                                    "dataBinding": {
+                                      "type": "STRING"
+                                    }
+                                  },
+                                  "required": [
+                                    "componentId",
+                                    "dataBinding"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "DateTimeInput": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "value": {
+                              "type": "OBJECT",
+                              "description": "The selected date and/or time.",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalString": {
+                                  "type": "STRING"
+                                }
+                              }
+                            },
+                            "enableDate": {
+                              "type": "BOOLEAN"
+                            },
+                            "enableTime": {
+                              "type": "BOOLEAN"
+                            },
+                            "firstDate": {
+                              "type": "STRING",
+                              "description": "The earliest selectable date (YYYY-MM-DD). Defaults to -9999-01-01."
+                            },
+                            "lastDate": {
+                              "type": "STRING",
+                              "description": "The latest selectable date (YYYY-MM-DD). Defaults to 9999-12-31."
+                            }
+                          },
+                          "required": [
+                            "value"
+                          ]
+                        },
+                        "Divider": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "axis": {
+                              "type": "STRING",
+                              "enum": [
+                                "horizontal",
+                                "vertical"
+                              ]
+                            }
+                          }
+                        },
+                        "Icon": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "name": {
+                              "type": "OBJECT",
+                              "description": "The name of the icon to display. This can be a literal string ('literalString') or a reference to a value in the data model ('path', e.g. '/icon/name').",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model.",
+                                  "enum": [
+                                    "accountCircle",
+                                    "add",
+                                    "arrowBack",
+                                    "arrowForward",
+                                    "attachFile",
+                                    "calendarToday",
+                                    "call",
+                                    "camera",
+                                    "check",
+                                    "close",
+                                    "delete",
+                                    "download",
+                                    "edit",
+                                    "error",
+                                    "event",
+                                    "favorite",
+                                    "favoriteOff",
+                                    "folder",
+                                    "help",
+                                    "home",
+                                    "info",
+                                    "locationOn",
+                                    "lock",
+                                    "lockOpen",
+                                    "mail",
+                                    "menu",
+                                    "moreHoriz",
+                                    "moreVert",
+                                    "notifications",
+                                    "notificationsOff",
+                                    "payment",
+                                    "person",
+                                    "phone",
+                                    "photo",
+                                    "print",
+                                    "refresh",
+                                    "search",
+                                    "send",
+                                    "settings",
+                                    "share",
+                                    "shoppingCart",
+                                    "star",
+                                    "starHalf",
+                                    "starOff",
+                                    "upload",
+                                    "visibility",
+                                    "visibilityOff",
+                                    "warning"
+                                  ]
+                                },
+                                "literalString": {
+                                  "type": "STRING",
+                                  "enum": [
+                                    "accountCircle",
+                                    "add",
+                                    "arrowBack",
+                                    "arrowForward",
+                                    "attachFile",
+                                    "calendarToday",
+                                    "call",
+                                    "camera",
+                                    "check",
+                                    "close",
+                                    "delete",
+                                    "download",
+                                    "edit",
+                                    "error",
+                                    "event",
+                                    "favorite",
+                                    "favoriteOff",
+                                    "folder",
+                                    "help",
+                                    "home",
+                                    "info",
+                                    "locationOn",
+                                    "lock",
+                                    "lockOpen",
+                                    "mail",
+                                    "menu",
+                                    "moreHoriz",
+                                    "moreVert",
+                                    "notifications",
+                                    "notificationsOff",
+                                    "payment",
+                                    "person",
+                                    "phone",
+                                    "photo",
+                                    "print",
+                                    "refresh",
+                                    "search",
+                                    "send",
+                                    "settings",
+                                    "share",
+                                    "shoppingCart",
+                                    "star",
+                                    "starHalf",
+                                    "starOff",
+                                    "upload",
+                                    "visibility",
+                                    "visibilityOff",
+                                    "warning"
+                                  ]
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        },
+                        "Image": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "url": {
+                              "type": "OBJECT",
+                              "description": "Asset path (e.g. assets/...) or network URL (e.g. https://...)",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalString": {
+                                  "type": "STRING"
+                                }
+                              }
+                            },
+                            "fit": {
+                              "type": "STRING",
+                              "description": "How the image should be inscribed into the box.",
+                              "enum": [
+                                "fill",
+                                "contain",
+                                "cover",
+                                "fitWidth",
+                                "fitHeight",
+                                "none",
+                                "scaleDown"
+                              ]
+                            },
+                            "usageHint": {
+                              "type": "STRING",
+                              "description": "A hint for the image size and style. One of:\n      - icon: Small square icon.\n      - avatar: Circular avatar image.\n      - smallFeature: Small feature image.\n      - mediumFeature: Medium feature image.\n      - largeFeature: Large feature image.\n      - header: Full-width, full bleed, header image.",
+                              "enum": [
+                                "icon",
+                                "avatar",
+                                "smallFeature",
+                                "mediumFeature",
+                                "largeFeature",
+                                "header"
+                              ]
+                            }
+                          }
+                        },
+                        "List": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "children": {
+                              "type": "OBJECT",
+                              "properties": {
+                                "explicitList": {
+                                  "type": "ARRAY",
+                                  "items": {
+                                    "type": "STRING"
+                                  }
+                                },
+                                "template": {
+                                  "type": "OBJECT",
+                                  "properties": {
+                                    "componentId": {
+                                      "type": "STRING"
+                                    },
+                                    "dataBinding": {
+                                      "type": "STRING"
+                                    }
+                                  },
+                                  "required": [
+                                    "componentId",
+                                    "dataBinding"
+                                  ]
+                                }
+                              }
+                            },
+                            "direction": {
+                              "type": "STRING",
+                              "enum": [
+                                "vertical",
+                                "horizontal"
+                              ]
+                            },
+                            "alignment": {
+                              "type": "STRING",
+                              "enum": [
+                                "start",
+                                "center",
+                                "end",
+                                "stretch"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "children"
+                          ]
+                        },
+                        "Modal": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "entryPointChild": {
+                              "type": "STRING",
+                              "description": "The widget that opens the modal."
+                            },
+                            "contentChild": {
+                              "type": "STRING",
+                              "description": "The widget to display in the modal."
+                            }
+                          },
+                          "required": [
+                            "entryPointChild",
+                            "contentChild"
+                          ]
+                        },
+                        "MultipleChoice": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "selections": {
+                              "type": "OBJECT",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalArray": {
+                                  "type": "ARRAY",
+                                  "items": {
+                                    "type": "STRING"
+                                  }
+                                }
+                              }
+                            },
+                            "options": {
+                              "type": "ARRAY",
+                              "items": {
+                                "type": "OBJECT",
+                                "properties": {
+                                  "label": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                      "path": {
+                                        "type": "STRING",
+                                        "description": "A relative or absolute path in the data model."
+                                      },
+                                      "literalString": {
+                                        "type": "STRING"
+                                      }
+                                    }
+                                  },
+                                  "value": {
+                                    "type": "STRING"
+                                  }
+                                },
+                                "required": [
+                                  "label",
+                                  "value"
+                                ]
+                              }
+                            },
+                            "maxAllowedSelections": {
+                              "type": "INTEGER"
+                            }
+                          },
+                          "required": [
+                            "selections",
+                            "options"
+                          ]
+                        },
+                        "Row": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "children": {
+                              "type": "OBJECT",
+                              "description": "Either an explicit list of widget IDs for the children, or a template with a data binding to the list of children.",
+                              "properties": {
+                                "explicitList": {
+                                  "type": "ARRAY",
+                                  "items": {
+                                    "type": "STRING"
+                                  }
+                                },
+                                "template": {
+                                  "type": "OBJECT",
+                                  "properties": {
+                                    "componentId": {
+                                      "type": "STRING"
+                                    },
+                                    "dataBinding": {
+                                      "type": "STRING"
+                                    }
+                                  },
+                                  "required": [
+                                    "componentId",
+                                    "dataBinding"
+                                  ]
+                                }
+                              }
+                            },
+                            "distribution": {
+                              "type": "STRING",
+                              "enum": [
+                                "start",
+                                "center",
+                                "end",
+                                "spaceBetween",
+                                "spaceAround",
+                                "spaceEvenly"
+                              ]
+                            },
+                            "alignment": {
+                              "type": "STRING",
+                              "enum": [
+                                "start",
+                                "center",
+                                "end",
+                                "stretch",
+                                "baseline"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "children"
+                          ]
+                        },
+                        "Slider": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "value": {
+                              "type": "OBJECT",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalNumber": {
+                                  "type": "NUMBER"
+                                }
+                              }
+                            },
+                            "minValue": {
+                              "type": "NUMBER"
+                            },
+                            "maxValue": {
+                              "type": "NUMBER"
+                            }
+                          },
+                          "required": [
+                            "value"
+                          ]
+                        },
+                        "Tabs": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "tabItems": {
+                              "type": "ARRAY",
+                              "items": {
+                                "type": "OBJECT",
+                                "properties": {
+                                  "title": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                      "path": {
+                                        "type": "STRING",
+                                        "description": "A relative or absolute path in the data model."
+                                      },
+                                      "literalString": {
+                                        "type": "STRING"
+                                      }
+                                    }
+                                  },
+                                  "child": {
+                                    "type": "STRING"
+                                  }
+                                },
+                                "required": [
+                                  "title",
+                                  "child"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "tabItems"
+                          ]
+                        },
+                        "Text": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "text": {
+                              "type": "OBJECT",
+                              "description": "While simple Markdown is supported (without HTML or image references), utilizing dedicated UI components is generally preferred for a richer and more structured presentation.",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalString": {
+                                  "type": "STRING"
+                                }
+                              }
+                            },
+                            "usageHint": {
+                              "type": "STRING",
+                              "description": "A usage hint for the base text style.",
+                              "enum": [
+                                "h1",
+                                "h2",
+                                "h3",
+                                "h4",
+                                "h5",
+                                "caption",
+                                "body"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "text"
+                          ]
+                        },
+                        "TextField": {
+                          "type": "OBJECT",
+                          "description": "A text input field.",
+                          "properties": {
+                            "text": {
+                              "type": "OBJECT",
+                              "description": "The initial value of the text field.",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalString": {
+                                  "type": "STRING"
+                                }
+                              }
+                            },
+                            "label": {
+                              "type": "OBJECT",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalString": {
+                                  "type": "STRING"
+                                }
+                              }
+                            },
+                            "textFieldType": {
+                              "type": "STRING",
+                              "enum": [
+                                "shortText",
+                                "longText",
+                                "number",
+                                "date",
+                                "obscured"
+                              ]
+                            },
+                            "validationRegexp": {
+                              "type": "STRING"
+                            },
+                            "onSubmittedAction": {
+                              "type": "OBJECT",
+                              "properties": {
+                                "name": {
+                                  "type": "STRING"
+                                },
+                                "context": {
+                                  "type": "ARRAY",
+                                  "description": "A list of name-value pairs to be sent with the action to include data associated with the action, e.g. values that are submitted.",
+                                  "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                      "key": {
+                                        "type": "STRING"
+                                      },
+                                      "value": {
+                                        "type": "OBJECT",
+                                        "properties": {
+                                          "path": {
+                                            "type": "STRING",
+                                            "description": "A path in the data model which should be bound to an input element, e.g. a string reference for a text field, or number reference for a slider."
+                                          },
+                                          "literalString": {
+                                            "type": "STRING",
+                                            "description": "A literal string relevant to the action"
+                                          },
+                                          "literalNumber": {
+                                            "type": "NUMBER",
+                                            "description": "A literal number relevant to the action"
+                                          },
+                                          "literalBoolean": {
+                                            "type": "BOOLEAN",
+                                            "description": "A literal boolean relevant to the action"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "key",
+                                      "value"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            }
+                          }
+                        },
+                        "Video": {
+                          "type": "OBJECT",
+                          "properties": {
+                            "url": {
+                              "type": "OBJECT",
+                              "description": "The URL of the video to play.",
+                              "properties": {
+                                "path": {
+                                  "type": "STRING",
+                                  "description": "A relative or absolute path in the data model."
+                                },
+                                "literalString": {
+                                  "type": "STRING"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "url"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "component"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "surfaceId",
+              "components"
+            ]
+          }
+        },
+        {
+          "name": "beginRendering",
+          "description": "Signals the client to begin rendering a surface with a root component.",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "surfaceId": {
+                "type": "STRING",
+                "description": "The surface ID of the surface to render."
+              },
+              "root": {
+                "type": "STRING",
+                "description": "The root widget ID for the surface. All components must be descendents of this root in order to be displayed."
+              },
+              "styles": {
+                "type": "OBJECT",
+                "properties": {
+                  "font": {
+                    "type": "STRING",
+                    "description": "The base font for this surface"
+                  },
+                  "primaryColor": {
+                    "type": "STRING",
+                    "description": "The seed color for the theme of this surface."
+                  }
+                }
+              }
+            },
+            "required": [
+              "surfaceId",
+              "root"
+            ]
+          }
+        },
+        {
+          "name": "deleteSurface",
+          "description": "Removes a UI surface that is no longer needed.",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "surfaceId": {
+                "type": "STRING",
+                "description": "The unique identifier for the UI surface to remove."
+              }
+            },
+            "required": [
+              "surfaceId"
+            ]
+          }
+        },
+        {
+          "name": "provideFinalOutput",
+          "description": "Returns the final output. Call this function when you are done with the current turn of the conversation. Do not call this if you need to use other tools first. You MUST call this tool when you are done.",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "output": {
+                "type": "OBJECT",
+                "properties": {
+                  "response": {
+                    "type": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY",
+      "allowedFunctionNames": [
+        "surfaceUpdate",
+        "beginRendering",
+        "deleteSurface",
+        "provideFinalOutput"
+      ]
+    }
+  }
+}

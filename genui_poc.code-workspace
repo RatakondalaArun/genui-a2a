@@ -1,0 +1,41 @@
+{
+  "folders": [
+    {
+      "name": "client",
+      "path": "client"
+    },
+    {
+      "name": "a2a_server",
+      "path": "server"
+    }
+  ],
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Dart",
+        "type": "dart",
+        "request": "launch",
+        "program": "${workspaceFolder:client}/lib/main.dart"
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Debug Bun (watch)",
+        "runtimeExecutable": "bun",
+        "cwd": "${workspaceFolder:a2a_server}",
+        "runtimeArgs": [
+          "--watch",
+          "server.ts"
+        ],
+        "env": {
+          "DEBUG": "true"
+        },
+        "restart": true,
+        "console": "integratedTerminal"
+      }
+    ],
+    "compounds": []
+  },
+  "settings": {}
+}

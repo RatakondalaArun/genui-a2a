@@ -1,0 +1,567 @@
+sources:
+  restaurant-db:
+    kind: postgres
+    host: 127.0.0.1
+    port: 5432
+    database: ${DB_NAME:restaurant_db}
+    user: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+tools:
+  # ============ Table Management Tools ============
+  create-table:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Create a new table with specified columns and data types.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to create.
+      - name: columns
+        type: string
+        description: Column definitions as comma-separated list (e.g., 'id SERIAL PRIMARY KEY, name VARCHAR(255), email VARCHAR(255) UNIQUE').
+    statement: CREATE TABLE IF NOT EXISTS $1 ($2);
+
+  get-table-schema:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Query the schema of a specific table including column names, types, and constraints.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to inspect.
+    statement: |
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = $1
+      ORDER BY ordinal_position;
+
+  list-all-tables:
+    kind: postgres-sql
+    source: restaurant-db
+    description: List all tables in the database with their row counts.
+    parameters: []
+    statement: |
+      SELECT tablename FROM pg_tables 
+      WHERE schemaname = 'public'
+      ORDER BY tablename;
+
+  drop-table:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Drop (delete) a table from the database. WARNING - This deletes all data.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to drop.
+    statement: DROP TABLE IF EXISTS $1 CASCADE;
+
+  # ============ Insert Data Tools ============
+  insert-row:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Insert a single row into a table.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to insert into.
+      - name: columns
+        type: string
+        description: Comma-separated column names (e.g., 'id, name, email').
+      - name: values
+        type: string
+        description: Comma-separated values with proper quoting (e.g., '1, 'John Doe', 'john@example.com'').
+    statement: INSERT INTO $1 ($2) VALUES ($3) RETURNING *;
+
+  bulk-insert:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Insert multiple rows into a table at once.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to insert into.
+      - name: columns
+        type: string
+        description: Comma-separated column names (e.g., 'id, name, email').
+      - name: values_list
+        type: string
+        description: Multiple value sets as comma-separated rows (e.g., '(1, 'John', 'john@ex.com'), (2, 'Jane', 'jane@ex.com')').
+    statement: INSERT INTO $1 ($2) VALUES $3 RETURNING *;
+
+  # ============ READ/QUERY Tools ============
+  select-all:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve all records from a table.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to query.
+    statement: SELECT * FROM $1;
+
+  select-where:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve records from a table based on a WHERE condition.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to query.
+      - name: condition
+        type: string
+        description: The WHERE clause condition (e.g., 'id = 5' or 'name ILIKE ''%John%''').
+    statement: SELECT * FROM $1 WHERE $2;
+
+  select-columns:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve specific columns from a table.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to query.
+      - name: columns
+        type: string
+        description: Comma-separated column names (e.g., 'id, name, email').
+      - name: condition
+        type: string
+        description: Optional WHERE clause condition. Leave empty for all records.
+    statement: SELECT $2 FROM $1 WHERE COALESCE($3, '1=1'::text) = COALESCE($3, '1=1'::text);
+
+  count-records:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Count the string of records in a table.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to count records from.
+      - name: condition
+        type: string
+        description: Optional WHERE clause condition. Leave empty to count all records.
+    statement: SELECT COUNT(*) as record_count FROM $1 WHERE COALESCE($2, '1=1'::text) = COALESCE($2, '1=1'::text);
+
+  # ============ UPDATE Tools ============
+  update-record:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Update one or more records in a table based on a condition.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to update.
+      - name: set_clause
+        type: string
+        description: Column assignments (e.g., 'name = ''New Name'', email = ''new@example.com''').
+      - name: condition
+        type: string
+        description: The WHERE clause condition to identify records to update (e.g., 'id = 5').
+    statement: UPDATE $1 SET $2 WHERE $3 RETURNING *;
+
+  # ============ DELETE Tools ============
+  delete-record:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Delete one or more records from a table based on a condition.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to delete from.
+      - name: condition
+        type: string
+        description: The WHERE clause condition to identify records to delete (e.g., 'id = 5').
+    statement: DELETE FROM $1 WHERE $2 RETURNING *;
+
+  delete-all:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Delete all records from a table. WARNING - This removes all data.
+    parameters:
+      - name: table_name
+        type: string
+        description: The name of the table to truncate.
+    statement: TRUNCATE TABLE $1 RESTART IDENTITY;
+
+  # ============ Restaurant CRUD Tools ============
+  create-restaurant:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Create a new restaurant record.
+    parameters:
+      - name: name
+        type: string
+        description: The name of the restaurant.
+      - name: cuisine
+        type: string
+        description: The cuisine type of the restaurant.
+      - name: address
+        type: string
+        description: The address of the restaurant.
+      - name: phone
+        type: string
+        description: The phone string of the restaurant.
+      - name: email
+        type: string
+        description: The email address of the restaurant.
+      - name: rating
+        type: string
+        description: The rating of the restaurant (0-5).
+    statement: INSERT INTO restaurants (name, cuisine, address, phone, email, rating) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
+
+  get-restaurant-by-id:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve a restaurant by its ID.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the restaurant.
+    statement: SELECT * FROM restaurants WHERE id = $1;
+
+  search-restaurants-by-name:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Search for restaurants based on name.
+    parameters:
+      - name: name
+        type: string
+        description: The name of the restaurant (supports partial matches).
+    statement: SELECT * FROM restaurants WHERE name ILIKE '%' || $1 || '%';
+
+  search-restaurants-by-cuisine:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Search for restaurants based on cuisine type.
+    parameters:
+      - name: cuisine
+        type: string
+        description: The cuisine type to search for.
+    statement: SELECT * FROM restaurants WHERE cuisine ILIKE '%' || $1 || '%';
+
+  get-all-restaurants:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve all restaurants from the database.
+    parameters: []
+    statement: SELECT * FROM restaurants ORDER BY rating DESC, name ASC;
+
+  get-restaurants-by-rating:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve restaurants with a minimum rating.
+    parameters:
+      - name: min_rating
+        type: string
+        description: The minimum rating (0-5).
+    statement: SELECT * FROM restaurants WHERE rating >= $1 ORDER BY rating DESC;
+
+  update-restaurant:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Update restaurant information.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the restaurant to update.
+      - name: name
+        type: string
+        description: The new name (optional).
+      - name: cuisine
+        type: string
+        description: The new cuisine type (optional).
+      - name: address
+        type: string
+        description: The new address (optional).
+      - name: phone
+        type: string
+        description: The new phone string (optional).
+      - name: email
+        type: string
+        description: The new email address (optional).
+      - name: rating
+        type: string
+        description: The new rating (optional).
+    statement: |
+      UPDATE restaurants 
+      SET name = COALESCE($2, name),
+          cuisine = COALESCE($3, cuisine),
+          address = COALESCE($4, address),
+          phone = COALESCE($5, phone),
+          email = COALESCE($6, email),
+          rating = COALESCE($7, rating)
+      WHERE id = $1
+      RETURNING *;
+
+  delete-restaurant:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Delete a restaurant by its ID.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the restaurant to delete.
+    statement: DELETE FROM restaurants WHERE id = $1 RETURNING *;
+
+  delete-restaurants-by-cuisine:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Delete all restaurants of a specific cuisine type.
+    parameters:
+      - name: cuisine
+        type: string
+        description: The cuisine type to delete.
+    statement: DELETE FROM restaurants WHERE cuisine = $1 RETURNING *;
+
+  # ============ Booking CRUD Tools ============
+  create-booking:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Create a new booking for a restaurant.
+    parameters:
+      - name: restaurant_id
+        type: string
+        description: The ID of the restaurant.
+      - name: customer_name
+        type: string
+        description: The name of the customer.
+      - name: customer_email
+        type: string
+        description: The email address of the customer.
+      - name: customer_phone
+        type: string
+        description: The phone number of the customer.
+      - name: booking_date
+        type: string
+        description: The date of the booking (YYYY-MM-DD).
+      - name: booking_time
+        type: string
+        description: The time of the booking (HH:MM:SS).
+      - name: party_size
+        type: string
+        description: The number of people in the party.
+      - name: special_requests
+        type: string
+        description: Special requests or dietary restrictions (optional).
+      - name: status
+        type: string
+        description: Booking status (confirmed, pending, cancelled, completed). Default is 'confirmed'.
+    statement: INSERT INTO bookings (restaurant_id, customer_name, customer_email, customer_phone, booking_date, booking_time, party_size, special_requests, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, 'confirmed')) RETURNING *;
+
+  get-booking-by-id:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve a booking by its ID.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the booking.
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE b.id = $1;
+
+  search-bookings-by-customer:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Search for bookings by customer name.
+    parameters:
+      - name: customer_name
+        type: string
+        description: The name of the customer (supports partial matches).
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE b.customer_name ILIKE '%' || $1 || '%' ORDER BY b.booking_date DESC;
+
+  search-bookings-by-restaurant:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Search for bookings for a specific restaurant.
+    parameters:
+      - name: restaurant_id
+        type: string
+        description: The ID of the restaurant.
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE b.restaurant_id = $1 ORDER BY b.booking_date DESC;
+
+  search-bookings-by-restaurant-name:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Search for bookings by restaurant name.
+    parameters:
+      - name: restaurant_name
+        type: string
+        description: The name of the restaurant (supports partial matches).
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE r.name ILIKE '%' || $1 || '%' ORDER BY b.booking_date DESC;
+
+  search-bookings-by-status:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve bookings by status (confirmed, pending, cancelled, completed).
+    parameters:
+      - name: status
+        type: string
+        description: The booking status (confirmed, pending, cancelled, completed).
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE b.status = $1 ORDER BY b.booking_date DESC;
+
+  search-bookings-by-date:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve bookings for a specific date.
+    parameters:
+      - name: booking_date
+        type: string
+        description: The date to search for (YYYY-MM-DD).
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE b.booking_date = $1 ORDER BY b.booking_time ASC;
+
+  get-bookings-date-range:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve bookings within a date range.
+    parameters:
+      - name: start_date
+        type: string
+        description: The start date (YYYY-MM-DD).
+      - name: end_date
+        type: string
+        description: The end date (YYYY-MM-DD).
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE b.booking_date BETWEEN $1 AND $2 ORDER BY b.booking_date ASC, b.booking_time ASC;
+
+  get-all-bookings:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve all bookings from the database.
+    parameters: []
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id ORDER BY b.booking_date DESC, b.booking_time ASC;
+
+  get-upcoming-bookings:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve all upcoming bookings (from today onwards).
+    parameters: []
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE b.booking_date >= CURRENT_DATE ORDER BY b.booking_date ASC, b.booking_time ASC;
+
+  get-bookings-by-party-size:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve bookings with a specific party size.
+    parameters:
+      - name: party_size
+        type: string
+        description: The party size to search for.
+    statement: SELECT b.*, r.name as restaurant_name FROM bookings b JOIN restaurants r ON b.restaurant_id = r.id WHERE b.party_size = $1 ORDER BY b.booking_date DESC;
+
+  update-booking:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Update booking information.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the booking to update.
+      - name: customer_name
+        type: string
+        description: The customer name (optional).
+      - name: customer_email
+        type: string
+        description: The customer email (optional).
+      - name: customer_phone
+        type: string
+        description: The customer phone (optional).
+      - name: booking_date
+        type: string
+        description: The booking date (optional).
+      - name: booking_time
+        type: string
+        description: The booking time (optional).
+      - name: party_size
+        type: string
+        description: The party size (optional).
+      - name: special_requests
+        type: string
+        description: Special requests (optional).
+      - name: status
+        type: string
+        description: The booking status (optional).
+    statement: |
+      UPDATE bookings 
+      SET customer_name = COALESCE($2, customer_name),
+          customer_email = COALESCE($3, customer_email),
+          customer_phone = COALESCE($4, customer_phone),
+          booking_date = COALESCE($5, booking_date),
+          booking_time = COALESCE($6, booking_time),
+          party_size = COALESCE($7, party_size),
+          special_requests = COALESCE($8, special_requests),
+          status = COALESCE($9, status),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING *;
+
+  delete-booking:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Delete a booking by its ID.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the booking to delete.
+    statement: DELETE FROM bookings WHERE id = $1 RETURNING *;
+
+  delete-bookings-by-status:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Delete all bookings with a specific status.
+    parameters:
+      - name: status
+        type: string
+        description: The status of bookings to delete (e.g., 'cancelled').
+    statement: DELETE FROM bookings WHERE status = $1 RETURNING *;
+
+  cancel-booking:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Cancel a booking by setting its status to 'cancelled'.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the booking to cancel.
+    statement: UPDATE bookings SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *;
+
+  confirm-booking:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Confirm a pending booking by setting its status to 'confirmed'.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the booking to confirm.
+    statement: UPDATE bookings SET status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *;
+
+  complete-booking:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Mark a booking as completed.
+    parameters:
+      - name: id
+        type: string
+        description: The ID of the booking to complete.
+    statement: UPDATE bookings SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *;
+
+  get-bookings-with-restaurant-details:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Retrieve bookings with full restaurant details.
+    parameters: []
+    statement: |
+      SELECT b.id, b.customer_name, b.customer_email, b.customer_phone, 
+             b.booking_date, b.booking_time, b.party_size, b.special_requests, b.status,
+             r.id as restaurant_id, r.name as restaurant_name, r.cuisine, r.address, 
+             r.phone as restaurant_phone, r.email as restaurant_email, r.rating
+      FROM bookings b 
+      JOIN restaurants r ON b.restaurant_id = r.id 
+      ORDER BY b.booking_date DESC, b.booking_time ASC;
+
+  # ============ Existing Tools ============
+  search-hotels-by-name:
+    kind: postgres-sql
+    source: restaurant-db
+    description: Search for restaurants based on name.
+    parameters:
+      - name: name.
+        type: string
+        description: The name of the restaurant.
+    statement: SELECT * FROM restaurants WHERE name ILIKE '%' || $1 || '%';

@@ -1,0 +1,32 @@
+{
+  "name": "node_api",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@toolbox-sdk/server": "^0.25.0",
+    "@types/bun": "latest",
+    "@types/express": "^5.0.6"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@a2a-js/sdk": "^0.3.7",
+    "@google/adk": "^0.2.4",
+    "@google/adk-devtools": "^0.2.2",
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/core": "^1.1.15",
+    "@langchain/google-genai": "^2.1.10",
+    "@langchain/mcp-adapters": "^1.1.1",
+    "@toolbox-sdk/core": "^0.1.5",
+    "@types/cors": "^2.8.19",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "langchain": "^1.2.10"
+  },
+  "scripts": {
+    "dev": "bun run --watch --env-file=.env server.ts",
+    "mcp-server": "bun run toolbox -p 5000 --ui --log-level DEBUG"
+  }
+}
