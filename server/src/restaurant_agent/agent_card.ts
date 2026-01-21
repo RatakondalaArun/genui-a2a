@@ -8,7 +8,7 @@ export const resturantBookingAgentCard: AgentCard = {
   url: 'http://localhost:4000/a2a/jsonrpc', // The public URL of your agent server
   skills: [{ id: 'chat', name: 'Chat', description: 'Say hello', tags: ['chat'] }],
   capabilities: {
-    pushNotifications: false,
+    pushNotifications: true,
     stateTransitionHistory: true,
     streaming: true,
     extensions: [

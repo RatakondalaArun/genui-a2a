@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genui_flutter/genui_chat.dart';
+import 'package:genui_flutter/feature/chat/ui/genui_chat.dart';
 
 class Agent {
   final String name;

@@ -3,6 +3,7 @@ import { mcpToolsServerUrl } from './tools';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { createAgent, initChatModel, SystemMessage } from 'langchain';
+import { resturantBookingAgentCard } from './agent_card';
 const A2UI_SCHEMA = JSON.stringify(a2UISchema);
 
 function getA2UIPrompt() {
@@ -74,7 +75,8 @@ const chatModel = new ChatGoogleGenerativeAI({
 export const restaurantAgent = createAgent({
   model: chatModel,
   tools: tools,
-
+  name: resturantBookingAgentCard.name,
+  description: resturantBookingAgentCard.description,
   systemPrompt: new SystemMessage({
     name: 'agent',
     content: [
